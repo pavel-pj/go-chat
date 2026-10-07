@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"sync"
 
@@ -51,7 +50,7 @@ func newData() *DataMap {
 
 func (d *DataMap) Set(value NoteInfo) (uuid.UUID, NoteInfo, error) {
 	uuid := uuid.New()
-	fmt.Println(uuid)
+
 	d.data[uuid] = value
 	return uuid, d.data[uuid], nil
 }
@@ -80,7 +79,8 @@ func noteStoreHandler(d *DataMap) Handler {
 		if err := json.NewDecoder(r.Body).Decode(&note); err != nil {
 			return err
 		}
-
+		d.mu.Lock()
+		defer d.mu.Unlock()
 		uuid, data, err := d.Set(note)
 		if err != nil {
 			return err
@@ -106,6 +106,8 @@ func noteGetHandler(d *DataMap) Handler {
 			return ErrnoData
 		}
 
+		d.mu.RLock()
+		defer d.mu.RUnlock()
 		data, err := d.Get(uuid)
 		if err != nil {
 			http.Error(w, "not found", http.StatusNotFound)

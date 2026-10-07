@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package note_v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option go_package = "chat/pkg/node_v1;note_v1";
+
+service NoteV1 {
+    rpc Get(GetRequest) returns (GetResponse);
+    rpc Store(StoreRequest) returns (StoreResponse);
+    
+}
+
+message NoteInfo {
+    string title = 1;
+    string content = 2;
+    string author = 3;
+    bool is_public = 4;
+}
+
+message Note {
+    int64 id = 1;
+    NoteInfo info = 2;
+    google.protobuf.Timestamp created_at= 3;
+    google.protobuf.Timestamp updated_at= 4;
+}
+
+message StoreRequest {
+    Note note = 1;
+}
+message StoreResponse {
+    int64 id = 1;
+}
+
+ 
+
+message GetRequest {
+    int64 id = 1;
+}
+
+message GetResponse {
+    Note note = 1;
+}

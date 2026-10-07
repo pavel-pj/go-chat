@@ -1,0 +1,56 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"net"
+
+	"github.com/brianvoe/gofakeit"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
+	desc "chat/pkg/note_v1"
+)
+
+const grpcPort = 50301
+
+type server struct {
+	desc.UnimplementedNoteV1Server
+}
+
+func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+	return &desc.GetResponse{
+		Note: &desc.Note{
+			Id: req.GetId(),
+			Info: &desc.NoteInfo{
+				Title:    gofakeit.BeerName(),
+				Content:  "a couple of sheet",
+				Author:   "Prundel",
+				IsPublic: true,
+			},
+			CreatedAt: timestamppb.New(gofakeit.Date()),
+			UpdatedAt: timestamppb.New(gofakeit.Date()),
+		},
+	}, nil
+
+}
+
+func main() {
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+	if err != nil {
+		log.Fatal("Server could not be run")
+	}
+
+	s := grpc.NewServer()
+	reflection.Register(s)
+	desc.RegisterNoteV1Server(s, &server{})
+
+	log.Printf("Server listening at %d", grpcPort)
+	if err = s.Serve(lis); err != nil {
+		log.Fatal("failed to server #{err}")
+	}
+
+}
