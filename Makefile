@@ -1,4 +1,5 @@
 LOCAL_BIN:=$(CURDIR)/bin
+DOCKER_USER ?= user99430e
 
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
@@ -17,3 +18,22 @@ generate-note-api:
 
 server-up:
 	go run cmd/grpc_server/main.go
+	
+client:
+	go run cmd/grpc_client/main.go	
+
+
+build-a:
+	GOOS=linux GOARCH=amd64 go build -o bin/grpc_server ./cmd/grpc_server
+
+docker-push:
+	docker login
+	docker build -t $(DOCKER_USER)/test-go-chat-server:latest .
+	docker push $(DOCKER_USER)/test-go-chat-server:latest
+
+#docker-push:
+#	docker push $(DOCKER_USER)/go-chat-server:latest
+
+to-server:
+	scp ./bin/grpc_server user200@83.222.26.90:/var/www/test_server
+	
