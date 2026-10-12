@@ -58,7 +58,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            export DOCKERHUB_USERNAME="${DOCKERHUB_USERNAME}"
             cd /var/www/go-chat
             docker compose pull
             docker compose up -d
