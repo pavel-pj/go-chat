@@ -3,7 +3,7 @@ include .env
 LOCAL_BIN:=$(CURDIR)/bin
 DOCKER_USER ?= user99430e
 LOCAL_MIGRATION_DIR=$(MIGRATION_DIR)
-LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(POSTGRES_PASSWORD)"
+LOCAL_MIGRATION_DSN="host=localhost port=$(PG_PORT) dbname=$(POSTGRES_DB) user=$(POSTGRES_USER) password=$(subst ",,$(POSTGRES_PASSWORD))"
 
 install-deps:
 	GOBIN=$(LOCAL_BIN) go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28.1
@@ -38,6 +38,10 @@ goose-down:
 goose-create:
 	mkdir -p $(LOCAL_MIGRATION_DIR)
 	$(LOCAL_BIN)/goose -dir $(LOCAL_MIGRATION_DIR) create $(NAME) sql
+
+up:
+	docker compose up -d --build
+		
 
 #build-a:
 #	GOOS=linux GOARCH=amd64 go build -o bin/grpc_server ./cmd/grpc_server

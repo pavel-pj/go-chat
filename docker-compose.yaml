@@ -3,6 +3,7 @@ services:
     image: postgres:18
     container_name: postgres
     restart: unless-stopped
+    env_file: .env  
     environment:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -11,6 +12,33 @@ services:
        - "${PG_PORT}:5432"
     volumes:
       - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  migrator:
+    image: ${DOCKERHUB_USERNAME}/test-go-chat-migrator:latest
+    restart: on-failure
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+
+  grpc-server:
+    image: ${DOCKERHUB_USERNAME}/test-go-chat-server:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "${APP_PORT}:50301"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
 
 volumes:
   pgdata:
